@@ -1,0 +1,77 @@
+object frmMain: TfrmMain
+  Left = 656
+  Height = 1000
+  Top = 45
+  Width = 1600
+  Caption = 'RR Color Swapper [pre-release]'
+  ClientHeight = 1000
+  ClientWidth = 1600
+  DesignTimePPI = 192
+  Font.Height = -38
+  Font.Name = 'Sans'
+  Menu = mnuMain
+  LCLVersion = '3.5.0.0'
+  object pnlMain: TPanel
+    Left = 0
+    Height = 1000
+    Top = 0
+    Width = 1600
+    Align = alClient
+    ClientHeight = 1000
+    ClientWidth = 1600
+    TabOrder = 0
+    object imgMain: TImage
+      Left = 1
+      Height = 998
+      Top = 1
+      Width = 1598
+      Align = alClient
+      OnMouseUp = imgMainMouseUp
+    end
+  end
+  object mnuMain: TMainMenu
+    Left = 306
+    Top = 313
+    object mnuMainFile: TMenuItem
+      Caption = '&File'
+      object mnuMainFileOpen: TMenuItem
+        Action = actOpen
+      end
+      object mnuMainFileSave: TMenuItem
+        Caption = '&Save'
+        Enabled = False
+      end
+      object mnuMainFileSaveAs: TMenuItem
+        Caption = 'Save &As'
+        Enabled = False
+      end
+      object mnuMainFileExit: TMenuItem
+        Action = actExit
+      end
+    end
+    object mnuMainHelp: TMenuItem
+      Caption = '&Help'
+      object mnuMainHelpAbout: TMenuItem
+        Caption = '&About'
+        OnClick = mnuMainHelpAboutClick
+      end
+    end
+  end
+  object alMain: TActionList
+    Left = 743
+    Top = 292
+    object actOpen: TFileOpen
+      Category = 'File'
+      Caption = '&Open'
+      Dialog.Filter = 'Textures|*.tga;*.dds;*.png|TGA|*.tga|DDS|*.dds|PNG|*.png'
+      Hint = 'Open'
+      ShortCut = 16463
+      OnAccept = actOpenAccept
+    end
+    object actExit: TFileExit
+      Category = 'File'
+      Caption = 'E&xit'
+      Hint = 'Exit'
+    end
+  end
+end
