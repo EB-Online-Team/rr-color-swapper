@@ -25,17 +25,19 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, Menus,
-  ActnList, StdActns, Imaging, ImagingTypes, ImagingClasses,
-  ImagingComponents, RRCS.Labeling;
+  ActnList, StdActns, StdCtrls, Imaging, ImagingClasses, ImagingComponents,
+  BGRABitmap, BGRABitmapTypes, HColorPicker, RRCS.Labeling, RRCS.Swapping;
 
 type
 
   { TfrmMain }
 
   TfrmMain = class(TForm)
-    alMain:      TActionList;
-    actExit:     TFileExit;
-    actOpen:     TFileOpen;
+    alMain: TActionList;
+    actExit: TFileExit;
+    actOpen: TFileOpen;
+    HColorPicker1: THColorPicker;
+    HColorPicker2: THColorPicker;
     mnuMainHelpAbout: TMenuItem;
     mnuMainFile: TMenuItem;
     mnuMainFileOpen: TMenuItem;
@@ -43,16 +45,20 @@ type
     mnuMainFileSaveAs: TMenuItem;
     mnuMainHelp: TMenuItem;
     mnuMainFileExit: TMenuItem;
-    mnuMain:     TMainMenu;
-    imgMain:     TImage;
-    pnlMain:     TPanel;
+    mnuMain: TMainMenu;
+    imgMain: TImage;
+    Panel1: TPanel;
+    pnlMain: TPanel;
     procedure actOpenAccept(Sender: TObject);
-    procedure imgMainMouseUp(Sender: TObject; Button: TMouseButton;
+    procedure HColorPicker2Change(Sender: TObject);
+    procedure imgMainMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: integer);
     procedure mnuMainHelpAboutClick(Sender: TObject);
   private
     Img: TSingleImage;
+    ImgBitmap, ImgBitmap2: TBGRABitmap;
     ImgLabels: TIntMatrix;
+    SelectedRegion: integer;
   public
   end;
 
@@ -74,41 +80,48 @@ begin
 end;
 
 procedure TfrmMain.actOpenAccept(Sender: TObject);
-var
-  ImgBmp: TImagingBitmap;
 begin
   FreeAndNil(Img);
+  FreeAndNil(ImgBitmap);
   Img := TSingleImage.CreateFromFile((Sender as TFileOpen).Dialog.FileName);
-  Img.Format := ifA8R8G8B8;
-  ImgBmp := TImagingBitmap.Create;
-  ImgBmp.Assign(Img);
-  imgMain.Picture.Graphic := ImgBmp;
-  ImgLabels := LabelImage(Img);
-  FreeAndNil(ImgBmp);
+  if Img.SaveToFile('tmp.tga') then
+  begin
+    ImgBitmap := TBGRABitmap.Create('tmp.tga');
+    imgMain.Picture.Assign(ImgBitmap);
+    ImgLabels := LabelImage(ImgBitmap);
+  end
+  else
+    ShowMessage('Error while opening image.');
 end;
 
-procedure TfrmMain.imgMainMouseUp(Sender: TObject; Button: TMouseButton;
+procedure TfrmMain.HColorPicker2Change(Sender: TObject);
+begin
+  FreeAndNil(ImgBitmap2);
+  ImgBitmap2 := HueSwapInRegionS(ImgBitmap, ImgLabels, SelectedRegion,
+    HColorPicker1.SelectedColor, HColorPicker2.SelectedColor);
+  imgMain.Picture.Assign(ImgBitmap2);
+end;
+
+procedure TfrmMain.imgMainMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: integer);
-var
-  RegionLabel: integer;
-  PixelColor: TColor32Rec;
 begin
   if Button = mbLeft then
   begin
-    RegionLabel := ImgLabels[X][Y];
+    if not Assigned(ImgBitmap) then
+      Exit;
+    if (X >= ImgBitmap.Width) or (Y >= ImgBitmap.Height) then
+      Exit;
+    SelectedRegion := ImgLabels[X][Y];
+    if SelectedRegion = 0 then
+      Exit;
+    FreeAndNil(ImgBitmap);
+    ImgBitmap := TBGRABitmap.Create('tmp.tga');
+    imgMain.Picture.Assign(ImgBitmap);
     for X := 0 to Pred(Img.Width) do
       for Y := 0 to Pred(Img.Height) do
-        if ImgLabels[X][Y] <> RegionLabel then
-        begin
-          PixelColor := GetPixel32(Img.ImageDataPointer^, X, Y);
-          PixelColor.A := 0;
-          SetPixel32(Img.ImageDataPointer^, X, Y, PixelColor);
-        end;
-{
-          imgMain.Canvas.Pixels[X, Y] :=
-            ($22 << 24) or ((imgMain.Canvas.Pixels[X, Y] << 8) >> 8);
-}
-    imgMain.Refresh;
+        if ImgLabels[X][Y] <> SelectedRegion then
+          ImgBitmap.ScanLine[Y][X].alpha := 64;
+    imgMain.Picture.Assign(ImgBitmap);
   end;
 end;
 

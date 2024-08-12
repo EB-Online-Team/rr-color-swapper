@@ -1,37 +1,69 @@
 object frmMain: TfrmMain
   Left = 656
-  Height = 1000
+  Height = 750
   Top = 45
-  Width = 1600
+  Width = 1200
   Caption = 'RR Color Swapper [pre-release]'
-  ClientHeight = 1000
-  ClientWidth = 1600
-  DesignTimePPI = 192
-  Font.Height = -38
+  ClientHeight = 750
+  ClientWidth = 1200
+  DesignTimePPI = 144
+  Font.Height = -29
   Font.Name = 'Sans'
   Menu = mnuMain
-  LCLVersion = '3.5.0.0'
   object pnlMain: TPanel
     Left = 0
-    Height = 1000
+    Height = 750
     Top = 0
-    Width = 1600
+    Width = 945
     Align = alClient
-    ClientHeight = 1000
-    ClientWidth = 1600
+    ClientHeight = 750
+    ClientWidth = 945
     TabOrder = 0
     object imgMain: TImage
       Left = 1
-      Height = 998
+      Height = 748
       Top = 1
-      Width = 1598
+      Width = 943
       Align = alClient
-      OnMouseUp = imgMainMouseUp
+      OnMouseDown = imgMainMouseDown
+    end
+  end
+  object Panel1: TPanel
+    Left = 945
+    Height = 750
+    Top = 0
+    Width = 255
+    Align = alRight
+    ClientHeight = 750
+    ClientWidth = 255
+    TabOrder = 1
+    object HColorPicker1: THColorPicker
+      Left = 1
+      Height = 33
+      Top = 1
+      Width = 253
+      Align = alTop
+      TabOrder = 0
+      Luminance = 128
+      MaxHue = 65535
+      HintFormat = 'Hue: %value (selected)'
+    end
+    object HColorPicker2: THColorPicker
+      Left = 1
+      Height = 33
+      Top = 34
+      Width = 253
+      Align = alTop
+      TabOrder = 1
+      OnChange = HColorPicker2Change
+      Luminance = 128
+      MaxHue = 65535
+      HintFormat = 'Hue: %value (selected)'
     end
   end
   object mnuMain: TMainMenu
-    Left = 306
-    Top = 313
+    Left = 230
+    Top = 235
     object mnuMainFile: TMenuItem
       Caption = '&File'
       object mnuMainFileOpen: TMenuItem
@@ -58,8 +90,8 @@ object frmMain: TfrmMain
     end
   end
   object alMain: TActionList
-    Left = 743
-    Top = 292
+    Left = 557
+    Top = 219
     object actOpen: TFileOpen
       Category = 'File'
       Caption = '&Open'

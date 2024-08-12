@@ -100,6 +100,12 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="mbColorLibLaz"/>
+      </Item>
+      <Item>
+        <PackageName Value="BGRABitmapPack"/>
+      </Item>
+      <Item>
         <PackageName Value="VampyreImagingPackageExt"/>
       </Item>
       <Item>

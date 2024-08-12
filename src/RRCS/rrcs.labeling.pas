@@ -24,82 +24,69 @@ unit RRCS.Labeling;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, Imaging, ImagingClasses;
+  Classes, SysUtils, Generics.Collections, Imaging, BGRABitmap, BGRABitmapTypes;
 
 type
   TIntMatrix = array of array of integer;
-  TVec2      = array of integer;
+  TVec2 = array of integer; { Pixel coordinate in (X,Y) order. }
   TVec2Queue = specialize TQueue<TVec2>;
 
-function LabelImage(Image: TBaseImage): TIntMatrix;
+function LabelImage(Image: TBGRABitmap): TIntMatrix;
 
 implementation
 
-function IsPixelTransparent(Image: TBaseImage; Pixel: TVec2): boolean;
+function IsPixelTransparent(Image: TBGRABitmap; X, Y: integer): boolean;
 begin
-  Result := GetPixel32(Image.ImageDataPointer^, Pixel[0], Pixel[1]).A = 0;
+  Result := Image.ScanAt(X, Y).alpha = 0;
 end;
 
-procedure InspectPixel(Image: TBaseImage; Pixel: TVec2; RegionLabel: integer;
+procedure InspectPixel(Image: TBGRABitmap; X, Y: integer; RegionLabel: integer;
   LabelArray: TIntMatrix; PixelQueue: TVec2Queue);
 var
-  X, Y: integer;
+  Pixel: TVec2;
 begin
-  X := Pixel[0];
-  Y := Pixel[1];
-  if (not IsPixelTransparent(Image, Pixel)) and (LabelArray[X][Y] = 0) then
+  Pixel := [X, Y];
+  if (not IsPixelTransparent(Image, X, Y)) and (LabelArray[X][Y] = 0) then
   begin
     LabelArray[X][Y] := RegionLabel;
     PixelQueue.Enqueue(Pixel);
   end;
 end;
 
-procedure InspectNeighboringPixels(Image: TBaseImage; Pixel: TVec2;
+procedure InspectNeighboringPixels(Image: TBGRABitmap; X, Y: integer;
   RegionLabel: integer; LabelArray: TIntMatrix; PixelQueue: TVec2Queue);
-var
-  X, Y: integer;
 begin
-  X := Pixel[0];
-  Y := Pixel[1];
-
   if Y > 0 then
   begin
     // N
-    InspectPixel(Image, [X, Y - 1], RegionLabel, LabelArray, PixelQueue);
+    InspectPixel(Image, X, Y - 1, RegionLabel, LabelArray, PixelQueue);
     // NW
     if X > 0 then
-      InspectPixel(Image, [X - 1, Y - 1], RegionLabel,
-        LabelArray, PixelQueue);
+      InspectPixel(Image, X - 1, Y - 1, RegionLabel, LabelArray, PixelQueue);
     // NE
     if X < Pred(Image.Width) then
-      InspectPixel(Image, [X + 1, Y - 1], RegionLabel,
-        LabelArray, PixelQueue);
+      InspectPixel(Image, X + 1, Y - 1, RegionLabel, LabelArray, PixelQueue);
   end;
-
   if Y < Pred(Image.Height) then
   begin
     // S
-    InspectPixel(Image, [X, Y + 1], RegionLabel, LabelArray, PixelQueue);
+    InspectPixel(Image, X, Y + 1, RegionLabel, LabelArray, PixelQueue);
     // SW
     if X > 0 then
-      InspectPixel(Image, [X - 1, Y + 1], RegionLabel, LabelArray,
-        PixelQueue);
+      InspectPixel(Image, X - 1, Y + 1, RegionLabel, LabelArray, PixelQueue);
     // SE
     if X < Pred(Image.Width) then
-      InspectPixel(Image, [X + 1, Y + 1], RegionLabel, LabelArray,
-        PixelQueue);
+      InspectPixel(Image, X + 1, Y + 1, RegionLabel, LabelArray, PixelQueue);
   end;
-
   // W
   if X > 0 then
-    InspectPixel(Image, [X - 1, Y], RegionLabel, LabelArray, PixelQueue);
-
+    InspectPixel(Image, X - 1, Y, RegionLabel, LabelArray, PixelQueue);
   // E
   if X < Pred(Image.Width) then
-    InspectPixel(Image, [X + 1, Y], RegionLabel, LabelArray, PixelQueue);
+    InspectPixel(Image, X + 1, Y, RegionLabel, LabelArray, PixelQueue);
 end;
 
-function LabelImage(Image: TBaseImage): TIntMatrix;
+function LabelImage(Image: TBGRABitmap): TIntMatrix;
 var
   X, Y, RegionLabel: integer;
   LabelArray: TIntMatrix;
@@ -113,14 +100,14 @@ begin
   for X := 0 to Pred(Image.Width) do
     for Y := 0 to Pred(Image.Height) do
     begin
-      if (not IsPixelTransparent(Image, [X, Y])) and (LabelArray[X][Y] = 0) then
+      if (not IsPixelTransparent(Image, X, Y)) and (LabelArray[X][Y] = 0) then
       begin
         LabelArray[X][Y] := RegionLabel;
         PixelQueue.Enqueue([X, Y]);
         repeat
           Pixel := PixelQueue.Dequeue;
-          InspectNeighboringPixels(Image, Pixel, RegionLabel, LabelArray,
-            PixelQueue);
+          InspectNeighboringPixels(Image, Pixel[0], Pixel[1], RegionLabel,
+            LabelArray, PixelQueue);
         until PixelQueue.Count = 0;
         Inc(RegionLabel);
       end;

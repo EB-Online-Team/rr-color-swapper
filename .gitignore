@@ -30,4 +30,10 @@ lib/
 *.app/
 
 # compiled binary directory
-./out/
+/out/
+
+# art assets
+*.png
+*.tga
+*.dds
+*.lz4
