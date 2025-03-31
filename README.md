@@ -1,3 +1,3 @@
 # RR Color Swapper
 
-A graphical utility to swap texture colors Total War: Rome Remastered.
+A graphical utility to swap texture colors for _Total War: Rome Remastered_.

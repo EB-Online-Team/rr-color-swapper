@@ -1,7 +1,7 @@
 {
-RR Color Swapper -- A graphical utility to swap texture colors Total War: Rome Remastered
+RR Color Swapper -- A graphical utility to swap texture colors for Total War: Rome Remastered.
 
-Copyright (C) 2024 Vartan Haghverdi
+Copyright (C) 2024-2025 Vartan Haghverdi
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -28,18 +28,27 @@ uses
   {$IFDEF HASAMIGA}
   athreads,
   {$ENDIF}
-  Interfaces, // this includes the LCL widgetset
+  Interfaces,
+  {$IFDEF WINDOWS}
+  uDarkStyleParams,
+  uMetaDarkStyle,
+  uDarkStyleSchemes,
+  {$ENDIF}
   Forms,
   Forms.Main,
   RRCS.Labeling,
-  RRCS.Swapping { you can add units after this };
+  RRCS.Swapping;
 
   {$R *.res}
 
 begin
   RequireDerivedFormResource := True;
-  Application.Title := 'RR Color Swapper';
-  Application.Scaled := True;
+  Application.Title:='RR Color Swapper';
+  Application.Scaled:=True;
+  {$IFDEF WINDOWS}
+  PreferredAppMode := pamAllowDark;
+  uMetaDarkStyle.ApplyMetaDarkStyle(DefaultDark);
+  {$ENDIF}
   Application.Initialize;
   Application.CreateForm(TfrmMain, frmMain);
   Application.Run;

@@ -1,7 +1,7 @@
 {
-RR Color Swapper -- A graphical utility to swap texture colors Total War: Rome Remastered
+RR Color Swapper -- A graphical utility to swap texture colors for Total War: Rome Remastered.
 
-Copyright (C) 2024 Vartan Haghverdi
+Copyright (C) 2024-2025 Vartan Haghverdi
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

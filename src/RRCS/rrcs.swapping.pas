@@ -1,7 +1,7 @@
 {
-RR Color Swapper -- A graphical utility to swap texture colors Total War: Rome Remastered
+RR Color Swapper -- A graphical utility to swap texture colors for Total War: Rome Remastered.
 
-Copyright (C) 2024 Vartan Haghverdi
+Copyright (C) 2024-2025 Vartan Haghverdi
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,10 +26,33 @@ interface
 uses
   Classes, SysUtils, BGRABitmap, BGRABitmapTypes, RRCS.Labeling;
 
+{ Return the positive difference of the hue values of two pixels. }
 function HueDelta(P1, P2: THSLAPixel): integer;
+
+{ Return the sum of the hue values of two pixels, wrapping back around
+if the sum surpasses the highest possible hue value. }
 function HueAdd(P1, P2: THSLAPixel): integer;
-procedure HueSwapInRegion(Img: TBGRABitmap; ImgLabels: TIntMatrix;
+
+{ Swap all pixels in an image (ImgOut) containing a hue value no more than a given
+percentage (Threshold) different than a given hue value (HueIn) with
+a different hue value (HueOut). Only do this for pixels that lie within a given
+region (RegionLabel), as indicated by a label matrix (ImgLabels).
+
+NOTE: This procedure is destructive as it performs the swap in-place and modifies
+the passed image (Img). }
+{
+procedure HueSwapInRegion(var Img: TBGRABitmap; ImgLabels: TIntMatrix;
   RegionLabel: integer; HueIn, HueOut: THSLAPixel; Threshold: double = 0.05);
+}
+procedure HueSwapInRegion(const ImgIn: TBGRABitmap; var ImgOut: TBGRABitmap;
+  ImgLabels: TIntMatrix; RegionLabel: integer; HueIn, HueOut: THSLAPixel;
+  Threshold: double = 0.05);
+
+{ Return a copy of an image (Img) in which all pixels containing a hue value no
+more than a given percentage (Threshold) different than a given hue value
+(HueIn) have been swapped with a different hue value (HueOut). Only do this for
+pixels that lie within a given region (RegionLabel), as indicated by a label
+matrix (ImgLabels). }
 function HueSwapInRegionS(const Img: TBGRABitmap; ImgLabels: TIntMatrix;
   RegionLabel: integer; HueIn, HueOut: THSLAPixel;
   Threshold: double = 0.05): TBGRABitmap;
@@ -38,60 +61,49 @@ implementation
 
 function HueDelta(P1, P2: THSLAPixel): integer;
 begin
-  if P1.hue > P2.hue then
-    Result := P1.hue - P2.hue
-  else
-    Result := P2.hue - P1.hue;
+  Result := Abs(integer(P1.hue) - integer(P2.hue));
 end;
 
 function HueAdd(P1, P2: THSLAPixel): integer;
 begin
-  Result := (P1.hue + P2.hue) mod High(THSLAPixel.hue);
+  // High() here returns 2^16 - 1 hence the need for + 1.
+  Result := (P1.hue + P2.hue) mod (High(THSLAPixel.hue) + 1);
 end;
 
-procedure HueSwapInRegion(Img: TBGRABitmap; ImgLabels: TIntMatrix;
-  RegionLabel: integer; HueIn, HueOut: THSLAPixel; Threshold: double);
+procedure HueSwapInRegion(const ImgIn: TBGRABitmap; var ImgOut: TBGRABitmap;
+  ImgLabels: TIntMatrix; RegionLabel: integer; HueIn, HueOut: THSLAPixel;
+  Threshold: double);
 var
   X, Y: integer;
   P1, P2: THSLAPixel;
 begin
-  for Y := 0 to Pred(Img.Height) do
-    for X := 0 to Pred(Img.Width) do
+  if (not Assigned(ImgIn)) or (not Assigned(ImgOut)) then
+    Exit;
+
+  for Y := 0 to Pred(ImgIn.Height) do
+    for X := 0 to Pred(ImgIn.Width) do
     begin
       if RegionLabel <> ImgLabels[X][Y] then
         Continue;
-      P1 := Img.ScanAt(X, Y);
-      if HueDelta(HueIn, P1) / double(High(THSLAPixel.hue)) < Threshold then
+      P1 := ImgIn.ScanLine[Y][X];
+
+      // High() here returns 2^16 - 1 hence the need for + 1.
+      if HueDelta(HueIn, P1) / double(High(THSLAPixel.hue) + 1) < Threshold then
       begin
         P2 := P1;
         P2.hue := (integer(P2.hue) - integer(HueIn.hue)) mod High(THSLAPixel.hue);
         P1.hue := HueAdd(HueOut, P2);
-        Img.ScanLine[Y][X] := P1;
+        ImgOut.ScanLine[Y][X] := P1;
       end;
     end;
 end;
 
 function HueSwapInRegionS(const Img: TBGRABitmap; ImgLabels: TIntMatrix;
   RegionLabel: integer; HueIn, HueOut: THSLAPixel; Threshold: double): TBGRABitmap;
-var
-  X, Y: integer;
-  P1, P2: THSLAPixel;
 begin
-  Result := TBGRABitmap.Create(Img);
-  for Y := 0 to Pred(Img.Height) do
-    for X := 0 to Pred(Img.Width) do
-    begin
-      if RegionLabel <> ImgLabels[X][Y] then
-        Continue;
-      P1 := Img.ScanAt(X, Y);
-      if HueDelta(HueIn, P1) / double(High(THSLAPixel.hue)) < Threshold then
-      begin
-        P2 := P1;
-        P2.hue := (P2.hue - HueIn.hue) mod High(THSLAPixel.hue);
-        P1.hue := HueAdd(HueOut, P2);
-        Result.ScanLine[Y][X] := P1;
-      end;
-    end;
+  Exit;
+  //Result := TBGRABitmap.Create(Img);
+  //HueSwapInRegion(Result, ImgLabels, RegionLabel, HueIn, HueOut, Threshold);
 end;
 
 end.

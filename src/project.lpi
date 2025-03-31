@@ -15,6 +15,7 @@
     </General>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
+      <MinorVersionNr Value="1"/>
       <StringTable LegalCopyright="(c) 2024 Vartan Haghverdi"/>
     </VersionInfo>
     <BuildModes>
@@ -99,6 +100,12 @@
       <FormatVersion Value="2"/>
     </RunParams>
     <RequiredPackages>
+      <Item>
+        <PackageName Value="MetaDarkStyle"/>
+      </Item>
+      <Item>
+        <PackageName Value="atimagebox_package"/>
+      </Item>
       <Item>
         <PackageName Value="mbColorLibLaz"/>
       </Item>
